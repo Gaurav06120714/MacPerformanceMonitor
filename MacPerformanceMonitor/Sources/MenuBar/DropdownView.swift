@@ -21,6 +21,9 @@ struct DropdownView: View {
     @State private var showSettings: Bool  = false
 
     var body: some View {
+        if showSettings {
+            SettingsView(monitor: monitor, onBack: { showSettings = false })
+        } else {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(alignment: .leading, spacing: 0) {
                 liveStatsSection
@@ -38,9 +41,8 @@ struct DropdownView: View {
         }
         .frame(width: 280)
         .background(.regularMaterial)
-        .sheet(isPresented: $showSettings) {
-            SettingsView(monitor: monitor)
-        }
+        } // end else
+        
     }
 
     // MARK: - Live Stats
