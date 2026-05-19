@@ -1,6 +1,6 @@
 # MacPerformanceMonitor
 
-A lightweight native macOS menu bar app that displays real-time system performance stats — CPU, RAM, GPU, display refresh rate, and network speed — directly in your menu bar.
+A lightweight native macOS menu bar app showing real-time system stats — CPU, RAM, GPU, display Hz, and network speed — as pure color-coded numbers directly in your menu bar.
 
 ![macOS](https://img.shields.io/badge/macOS-13%2B-blue)
 ![Swift](https://img.shields.io/badge/Swift-5.9-orange)
@@ -11,43 +11,52 @@ A lightweight native macOS menu bar app that displays real-time system performan
 ## Preview
 
 ```
-CPU 17%  RAM 9.3G  GPU 19%  Hz 119  ↑1.2M ↓3.4M
+12% | 9.2G | 2% | 120 | ↑0K ↓0K   🌙
 ```
 
-Color coded live in your menu bar:
-- 🟢 Green — normal (< 50%)
-- 🟡 Yellow — moderate (50–80%)
-- 🔴 Red — high (> 80%)
-- 🔵 Cyan — display Hz
-- 🟦 Teal/Blue — network upload/download
+No labels. Just numbers. Color tells you everything:
+
+| Position | Metric | Color |
+|---|---|---|
+| 1st | CPU usage | 🟢 Green / 🟡 Yellow / 🔴 Red |
+| 2nd | RAM used (GB) | 🟢 Green |
+| 3rd | GPU usage | 🟢 Green / 🟡 Yellow / 🔴 Red |
+| 4th | Display Hz | 🔵 Cyan |
+| 5th | Network ↑↓ | 🟦 Teal / Blue |
 
 ---
 
 ## Features
 
-- **CPU usage** — real tick-delta via Mach kernel APIs
-- **RAM usage** — actual GB used (e.g. `9.3G`) via `vm_statistics64`
-- **GPU usage** — IOKit `IOAccelerator` device utilization %
-- **Display Hz** — live refresh rate via `CVDisplayLink`
-- **Network speed** — real-time upload/download MB/s via `getifaddrs`
-- Click menu bar item → detailed dropdown with live graphs, top processes, controls
+- Pure numbers — no clutter, no labels
+- **CPU** — real tick-delta via Mach kernel APIs
+- **RAM** — actual GB used via `vm_statistics64`
+- **GPU** — IOKit `IOAccelerator` device utilization %
+- **Hz** — live display refresh rate via `CVDisplayLink`
+- **Network** — real-time upload/download MB/s via `getifaddrs`
+- Click menu bar → detailed dropdown with graphs, top processes, controls
 - No Dock icon — pure menu bar app
-- Extremely low CPU overhead
-- Auto-start at login via `launchd`
+- Extremely low CPU overhead (~0.1%)
+- Works alongside other menu bar apps
 
 ---
 
 ## Requirements
 
 - macOS 13 (Ventura) or later
-- Xcode Command Line Tools or Xcode
+- Xcode Command Line Tools
+
+Install Xcode CLT if needed:
+```bash
+xcode-select --install
+```
 
 ---
 
 ## Build & Run
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/MacPerformanceMonitor.git
+git clone https://github.com/Gaurav06120714/MacPerformanceMonitor.git
 cd MacPerformanceMonitor
 
 swift build -c release
@@ -58,7 +67,7 @@ swift build -c release
 
 ## Auto-start at Login
 
-Run once to launch automatically on every boot:
+Run once — app launches automatically on every boot:
 
 ```bash
 cat > ~/Library/LaunchAgents/com.MacPerformanceMonitor.plist << 'EOF'
@@ -85,7 +94,9 @@ EOF
 launchctl load ~/Library/LaunchAgents/com.MacPerformanceMonitor.plist
 ```
 
-To stop: `launchctl unload ~/Library/LaunchAgents/com.MacPerformanceMonitor.plist`
+> Replace `/path/to/` with your actual project path.
+
+To remove: `launchctl unload ~/Library/LaunchAgents/com.MacPerformanceMonitor.plist`
 
 ---
 
@@ -102,11 +113,11 @@ MacPerformanceMonitor/
         │   ├── MacPerformanceMonitorApp.swift
         │   └── AppDelegate.swift
         ├── MenuBar/
-        │   ├── MenuBarManager.swift
-        │   ├── DropdownView.swift
-        │   └── MiniGraphView.swift
+        │   ├── MenuBarManager.swift       ← menu bar title + popover
+        │   ├── DropdownView.swift         ← detail panel on click
+        │   └── MiniGraphView.swift        ← sparkline graphs
         ├── Monitors/
-        │   ├── SystemMonitor.swift
+        │   ├── SystemMonitor.swift        ← aggregator
         │   ├── CPUMonitor.swift
         │   ├── RAMMonitor.swift
         │   ├── GPUMonitor.swift
@@ -122,9 +133,15 @@ MacPerformanceMonitor/
 
 ---
 
-## Why FPS shows Hz not game FPS
+## Why Hz instead of FPS
 
-macOS sandboxes each process — no global GPU present queue exists outside a running app (unlike Windows DXGI hooks used by MSI Afterburner). `CVDisplayLink` gives the display's active refresh rate. True per-game FPS from an external monitor is not possible on macOS without disabling SIP.
+macOS sandboxes each process — there is no global GPU present queue accessible from outside a running app (unlike Windows DXGI hooks used by MSI Afterburner/RTSS). `CVDisplayLink` gives the display's active refresh rate, which is the ceiling FPS any app can hit. True per-game FPS from an external monitor is not possible on macOS without disabling SIP.
+
+---
+
+## No Special Permissions Required
+
+All APIs used (Mach host stats, IOKit, getifaddrs) are available to any app without special entitlements.
 
 ---
 
