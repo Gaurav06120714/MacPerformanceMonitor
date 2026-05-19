@@ -103,33 +103,39 @@ final class MenuBarManager: NSObject {
         }
 
         func gap() {
-            out.append(NSAttributedString(string: "  ", attributes: [
+            out.append(NSAttributedString(string: " ", attributes: [
                 .font: labelFont, .foregroundColor: NSColor.tertiaryLabelColor
             ]))
         }
 
-        // CPU — %
-        label("CPU "); value("\(Int(cpu))%", pctColor(cpu))
+        // Pure numbers only — color identifies each metric, no text labels
+        // 🟢CPU% | 🟢RAM | 🔵GPU% | 🔵Hz | 🟦↑↓
+        let div = NSAttributedString(string: " | ", attributes: [
+            .font: labelFont, .foregroundColor: NSColor.tertiaryLabelColor
+        ])
 
-        // RAM — actual GB (e.g. 9.3G)
-        gap(); label("RAM ")
+        // CPU — green/yellow/red by load
+        value("\(Int(cpu))%", pctColor(cpu))
+
+        // RAM — always green, shows actual GB
+        out.append(div)
         let ramStr = ramGB < 10 ? String(format: "%.1fG", ramGB) : String(format: "%.0fG", ramGB)
         value(ramStr, .systemGreen)
 
-        // GPU — % if available
+        // GPU — if available
         if let gpu {
-            gap(); label("GPU "); value("\(Int(gpu))%", pctColor(gpu))
+            out.append(div)
+            value("\(Int(gpu))%", pctColor(gpu))
         }
 
-        // Hz — display refresh rate, always cyan
-        gap(); label("Hz "); value("\(Int(fps))", .systemCyan)
+        // Hz — cyan
+        out.append(div)
+        value("\(Int(fps))", .systemCyan)
 
-        // Network — always visible, shows 0K when idle
-        gap()
-        out.append(NSAttributedString(string: "↑", attributes: [.font: labelFont, .foregroundColor: NSColor.systemTeal]))
-        value(speedStr(upMBps), .systemTeal)
-        out.append(NSAttributedString(string: " ↓", attributes: [.font: labelFont, .foregroundColor: NSColor.systemBlue]))
-        value(speedStr(downMBps), .systemBlue)
+        // Network — teal/blue
+        out.append(div)
+        value("↑\(speedStr(upMBps))", .systemTeal)
+        value(" ↓\(speedStr(downMBps))", .systemBlue)
 
         return out
     }
