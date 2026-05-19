@@ -45,7 +45,7 @@ final class AppPreferences {
     // MARK: Refresh rate
 
     /// Monitoring refresh interval in seconds. Valid values: 0.5, 1.0, 2.0.
-    @UserDefault("refreshInterval", defaultValue: 1.0)
+    @UserDefault("refreshInterval", defaultValue: 0.5)
     var refreshInterval: Double
 
     // MARK: Visibility toggles
@@ -77,6 +77,6 @@ final class AppPreferences {
     /// Clamp and save a new refresh interval, only accepting known-good values.
     func setRefreshInterval(_ seconds: Double) {
         let allowed: [Double] = [0.5, 1.0, 2.0]
-        refreshInterval = allowed.contains(seconds) ? seconds : 1.0
+        refreshInterval = allowed.contains(seconds) ? seconds : 0.5
     }
 }
